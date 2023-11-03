@@ -52,6 +52,12 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
 
                 //Ajoutez ici d’autres case pour gérer d’autres commandes.
 
+                case "MSG": //Envoie un message à tous les utilisateurs connectés sauf l'expéditeur :
+                    aliasExpediteur = cnx.getAlias();
+                    msg = evenement.getArgument();
+                    serveur.envoyerATousSauf(msg, aliasExpediteur);
+                    break;
+
                 default: //Renvoyer le texte recu convertit en majuscules :
                     msg = (evenement.getType() + " " + evenement.getArgument()).toUpperCase();
                     cnx.envoyer(msg);

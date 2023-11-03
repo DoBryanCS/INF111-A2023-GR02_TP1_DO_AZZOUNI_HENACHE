@@ -3,6 +3,7 @@ package com.chat.serveur;
 import com.chat.commun.net.Connexion;
 
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 /**
  * Cette classe étend (hérite) la classe abstraite Serveur et y ajoute le nécessaire pour que le
@@ -95,5 +96,18 @@ public class ServeurChat extends Serveur {
     public String historique() {
         String s = "";
         return s;
+    }
+    /**
+     * Envoie la chaîne str à tous les utilisateurs connectés sauf à celui
+     * qui a l’alias aliasExpediteur.
+     *
+     * @param str String chaine de caractères représentant le message à envoyer
+     * @param aliasExpediteur String chaine de caractères représentant l'alias d'un utilisateur connecté
+     */
+    public void envoyerATousSauf(String str, String aliasExpediteur) {
+        for (Connexion cnx:connectes) {
+            if (!cnx.getAlias().equals(aliasExpediteur))
+                cnx.envoyer(aliasExpediteur + ">>" + str);
+        }
     }
 }
