@@ -33,7 +33,7 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
         Object source = evenement.getSource();
         Connexion cnx;
         String typeEvenement, arg;
-        String[] membres, messages;
+        String[] membres, messages, alias;
 
         if (source instanceof Connexion) {
             cnx = (Connexion) source;
@@ -59,6 +59,33 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
                         for (String m : messages)
                             System.out.println("\t\t\t." + m);
                     }
+                    break;
+                case "JOIN" : //Informe un client de la réception d’une invitation à un chat privé
+                    arg = evenement.getArgument();
+                    System.out.println("\t\t" + "Vous avez recu une invitation de chat prive de " + arg + "!");
+                    break;
+                case "JOINOK" : //Valide le démarrage d’un chat privé avec alias.
+                    arg = evenement.getArgument();
+                    System.out.println("\t\t" + "Le salon de chat prive avec " + arg + " a ete cree!");
+                    break;
+                case "DECLINE" : //Informe le client que alias a refusé son invitation.
+                    arg = evenement.getArgument();
+                    System.out.println("\t\t" + arg + " a refuse votre invitation de chat prive!");
+                    break;
+                case "INV" : //Envoie la liste des invitations à un chat privé.
+                    arg = evenement.getArgument();
+                    alias = arg.split(":");
+                    if (alias[0].isEmpty()) {
+                        System.out.println("\t\t" + "Vous n'avez aucune invitation A des chats prives!");
+                    } else {
+                        System.out.println("\t\t" + "Vous avez " + alias.length + " invitations à des chats prives:");
+                        for (String a : alias)
+                            System.out.println("\t\t\t." + a);
+                    }
+                    break;
+                case "QUIT" : //Informe le client que alias a quitté le salon privé.
+                    arg = evenement.getArgument();
+                    System.out.println("\t\t" + arg + " a quitter le salon prive avec vous!");
                     break;
                 default: //Afficher le texte recu :
                     System.out.println("\t\t\t."+evenement.getType()+" "+evenement.getArgument());
