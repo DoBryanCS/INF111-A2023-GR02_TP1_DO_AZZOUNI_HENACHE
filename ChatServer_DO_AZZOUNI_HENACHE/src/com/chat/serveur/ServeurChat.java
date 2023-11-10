@@ -4,6 +4,7 @@ import com.chat.commun.net.Connexion;
 
 import java.util.ArrayList;
 import java.util.ListIterator;
+import java.util.Vector;
 
 /**
  * Cette classe étend (hérite) la classe abstraite Serveur et y ajoute le nécessaire pour que le
@@ -14,6 +15,9 @@ import java.util.ListIterator;
  * @since 2023-09-15
  */
 public class ServeurChat extends Serveur {
+
+    //Liste des messages envoyés au salon de chat public :
+    protected Vector<String> historique = new Vector<>();
 
     /**
      * Crée un serveur de chat qui va écouter sur le port spécifié.
@@ -95,6 +99,8 @@ public class ServeurChat extends Serveur {
      */
     public String historique() {
         String s = "";
+        for (String str: historique)
+            s+= str + "\n";
         return s;
     }
     /**

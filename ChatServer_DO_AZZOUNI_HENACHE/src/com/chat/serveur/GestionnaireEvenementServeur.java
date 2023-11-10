@@ -58,6 +58,10 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     serveur.envoyerATousSauf(msg, aliasExpediteur);
                     break;
 
+                case "HIST": //Affiche l'historique des messages :
+                    cnx.envoyer("HIST " + serveur.historique());
+                    break;
+
                 default: //Renvoyer le texte recu convertit en majuscules :
                     msg = (evenement.getType() + " " + evenement.getArgument()).toUpperCase();
                     cnx.envoyer(msg);

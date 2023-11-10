@@ -33,7 +33,7 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
         Object source = evenement.getSource();
         Connexion cnx;
         String typeEvenement, arg;
-        String[] membres;
+        String[] membres, messages;
 
         if (source instanceof Connexion) {
             cnx = (Connexion) source;
@@ -48,6 +48,17 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
                     System.out.println("\t\t"+membres.length+" personnes dans le salon :");
                     for (String s:membres)
                         System.out.println("\t\t\t- "+s);
+                    break;
+                case "HIST" : //Le serveur a a renvoyé la liste des messages publics
+                    arg = evenement.getArgument();
+                    messages = arg.split("\n");
+                    if (messages[0].isEmpty()) {
+                        System.out.println("\t\t" + "Il n'y a aucun message dans l'historique des messages publics!");
+                    } else {
+                        System.out.println("\t\t" + "Il y a " + messages.length + " messages dans l'historique des messages publics:");
+                        for (String m : messages)
+                            System.out.println("\t\t\t." + m);
+                    }
                     break;
                 default: //Afficher le texte recu :
                     System.out.println("\t\t\t."+evenement.getType()+" "+evenement.getArgument());
