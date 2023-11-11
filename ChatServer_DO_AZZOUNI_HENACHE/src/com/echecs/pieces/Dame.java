@@ -55,12 +55,11 @@ public class Dame extends Piece{
     }
 
     private boolean peutSeDeplacerEnDiagonale(byte ligne1, byte colonne1, byte ligne2, byte colonne2, Piece[][] echiquier) {
-        byte startLigne = (byte) (Math.min(ligne1, ligne2) + 1);
-        byte endLigne = (byte) Math.max(ligne1, ligne2);
-        byte startColonne = (byte) (Math.min(colonne1, colonne2) + 1);
-        byte endColonne = (byte) Math.max(colonne1, colonne2);
+        // Déplacement en diagonale
+        byte stepLigne = (byte) ((ligne2 > ligne1) ? 1 : -1);
+        byte stepColonne = (byte) ((colonne2 > colonne1) ? 1 : -1);
 
-        for (byte i = startLigne, j = startColonne; i < endLigne && j < endColonne; i++, j++) {
+        for (byte i = (byte) (ligne1 + stepLigne), j = (byte) (colonne1 + stepColonne); i != ligne2 || j != colonne2; i += stepLigne, j += stepColonne) {
             if (echiquier[i][j] != null) {
                 return false; // Il y a une pièce sur le chemin
             }

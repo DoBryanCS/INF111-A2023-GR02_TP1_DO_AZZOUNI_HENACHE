@@ -2,11 +2,12 @@ package com.chat.serveur;
 
 public class Invitation {
     private String aliasHote, aliasInvite;
-    private boolean isAliasHote, isAliasInvite;
+    private boolean isAliasHote, isAliasInvite, isInvitationEchec;
 
-    public Invitation(String aliasHote, String aliasInvite) {
+    public Invitation(String aliasHote, String aliasInvite, boolean isInvitationEchec) {
         this.aliasHote = aliasHote;
         this.aliasInvite = aliasInvite;
+        this.isInvitationEchec = isInvitationEchec;
     }
 
     public String getAliasHote() {
@@ -16,6 +17,8 @@ public class Invitation {
     public String getAliasInvite() {
         return aliasInvite;
     }
+
+    public boolean getIsInvitationEchec() { return isInvitationEchec; }
 
     public boolean getIsAliasHote() {
         return isAliasHote;

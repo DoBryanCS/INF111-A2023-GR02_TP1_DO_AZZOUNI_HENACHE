@@ -4,6 +4,9 @@ import com.chat.commun.evenement.Evenement;
 import com.chat.commun.evenement.GestionnaireEvenement;
 import com.chat.commun.net.Connexion;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Cette classe représente un gestionnaire d'événement d'un client. Lorsqu'un client reçoit un texte d'un serveur,
  * il crée un événement à partir du texte reçu et alerte ce gestionnaire qui réagit en gérant l'événement.
@@ -70,7 +73,7 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
                     break;
                 case "DECLINE" : //Informe le client que alias a refusé son invitation.
                     arg = evenement.getArgument();
-                    System.out.println("\t\t" + arg + " a refuse votre invitation de chat prive!");
+                    System.out.println("\t\t" + arg + " a refuse votre invitation!");
                     break;
                 case "INV" : //Envoie la liste des invitations à un chat privé.
                     arg = evenement.getArgument();
@@ -86,6 +89,69 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
                 case "QUIT" : //Informe le client que alias a quitté le salon privé.
                     arg = evenement.getArgument();
                     System.out.println("\t\t" + arg + " a quitter le salon prive avec vous!");
+                    break;
+                case "CHESS" : //Informe le client que alias a quitté le salon privé.
+                    arg = evenement.getArgument();
+                    System.out.println("\t\t" + "Vous avez recu une invitation a une partie d'echec de " + arg + "!");
+                    break;
+                case "CHESSOK" : //Valide le démarrage d’une partie d’échecs pour les clients
+                    arg = evenement.getArgument();
+                    ((ClientChat) client).nouvellePartie();
+                    if (arg.equals("b"))
+                        System.out.println("\t\t" + "Partie d'echec cree. Vous etes blanc, a vous de commencer!");
+                    else
+                        System.out.println("\t\t" + "Partie d'echec cree. Vous etes noir, attendez votre tour!");
+                    break;
+                case "MOVE" : //Valide un déplacement de pièce envoyé par un client.
+                    arg = evenement.getArgument();
+
+                    // Définition du motif de la commande
+                    String motif = "([a-zA-Z])(\\d+)[-\\s]?([a-zA-Z])(\\d+)";
+
+                    // Création d'un objet Pattern
+                    Pattern pattern = Pattern.compile(motif);
+
+                    // Création d'un objet Matcher avec la commande
+                    Matcher matcher = pattern.matcher(arg);
+
+                    if (matcher.matches()) {
+                        char colonne1 = matcher.group(1).charAt(0);
+                        byte ligne1 = Byte.parseByte(matcher.group(2));
+                        char colonne2 = matcher.group(3).charAt(0);
+                        byte ligne2 = Byte.parseByte(matcher.group(4));
+
+                        EtatPartieEchecs etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                        char[][] nouvelEtat = etatPartieEchecs.getEtatEchiquier();
+
+                        char pieceDeplacee = nouvelEtat[8 - ligne1][colonne1 - 'a'];
+                        nouvelEtat[8 - ligne1][colonne1 - 'a'] = ' ';
+
+                        nouvelEtat[8 - ligne2][colonne2 - 'a'] = pieceDeplacee;
+
+                        etatPartieEchecs.setEtatEchiquier(nouvelEtat);
+
+                        ((ClientChat) client).setEtatPartieEchecs(etatPartieEchecs);
+
+                        System.out.println(etatPartieEchecs);
+                        System.out.println();
+                    }
+
+                    break;
+                case "INVALID" : //Invalide un déplacement de pièce envoyé par un client.
+                    System.out.println("\t\t" + "Invalide, essayez un autre mouvement!");
+                    break;
+                case "ECHEC" : //Informe le client qu’il y a échec et mat et donne l’alias du gagnant.
+                    arg = evenement.getArgument();
+                    System.out.println("\t\t" + arg + " est en echec!");
+                    break;
+                case "MAT" : //Informe le client qu’il y a échec et mat et donne l’alias du gagnant.
+                        arg = evenement.getArgument();
+                    System.out.println("\t\t" + "Echec et mat, le gagnant est " + arg + "!");
+                    break;
+                case "ABANDON" : //Abandonne une partie d’échecs.
+                    arg = evenement.getArgument();
+                    System.out.println("\t\t" + "Gagnant par abandon, le gagnant est " + arg + "!");
+                    ((ClientChat) client).setEtatPartieEchecs(null);
                     break;
                 default: //Afficher le texte recu :
                     System.out.println("\t\t\t."+evenement.getType()+" "+evenement.getArgument());

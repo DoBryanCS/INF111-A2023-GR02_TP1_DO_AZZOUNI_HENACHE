@@ -21,6 +21,8 @@ public class PartieEchecs {
     private String aliasJoueur1, aliasJoueur2;
     private char couleurJoueur1, couleurJoueur2;
 
+    private char couleurDernierePieceDeplace;
+
     /**
      * La couleur de celui à qui c'est le tour de jouer (n ou b).
      */
@@ -98,6 +100,7 @@ public class PartieEchecs {
         byte ligne2 = EchecsUtil.indiceLigne(finale);
         byte colonne1 = EchecsUtil.indiceColonne(initiale);
         byte colonne2 = EchecsUtil.indiceColonne(finale);
+        char couleurAdverse = (tour == 'b') ? 'n' : 'b';
 
         // Vérifier la validité des positions
         if (!EchecsUtil.positionValide(initiale) || !EchecsUtil.positionValide(finale))
@@ -143,12 +146,13 @@ public class PartieEchecs {
 
             // Manger la pièce adverse
             if (pieceFinale != null) {
+
                 echiquier[ligne2][colonne2] = pieceADeplacer;
                 echiquier[ligne1][colonne1] = null;
 
                 char estEnEchec = estEnEchec();
                 // Vérifier si le roi est en échec après le déplacement
-                if (estEnEchec == pieceADeplacer.getCouleur()) {
+                if (estEnEchec == tour) {
                     echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement
                     echiquier[ligne1][colonne1] = pieceADeplacer;
                     return false;
@@ -166,6 +170,8 @@ public class PartieEchecs {
                 }
             }
 
+            couleurDernierePieceDeplace = tour;
+
             // Changer le tour
             changerTour();
 
@@ -177,6 +183,8 @@ public class PartieEchecs {
 
     // Roque du côté roi
     private boolean faireRoqueCoteRoi(Roi roi, Piece pieceFinale, int ligne1, int colonne1, int ligne2, int colonne2) {
+        char couleurAdverse = (tour == 'b') ? 'n' : 'b';
+
         // Vérifier les conditions du roque
         if (roi.getABouge() || echiquier[ligne1][7] == null || !(echiquier[ligne1][7] instanceof Tour) || ((Tour) echiquier[ligne1][7]).getABouge()) {
             return false;
@@ -212,6 +220,8 @@ public class PartieEchecs {
 
             return false;
         }
+
+        couleurDernierePieceDeplace = tour;
 
         // Changer le tour
         changerTour();
@@ -256,6 +266,8 @@ public class PartieEchecs {
 
             return false;
         }
+
+        couleurDernierePieceDeplace = tour;
 
         // Changer le tour
         changerTour();
@@ -343,6 +355,85 @@ public class PartieEchecs {
     }
 
     /**
+     * Vérifie si le joueur de la couleur spécifiée est en échec et mat.
+     *
+     * @param couleur La couleur du joueur à vérifier ('n' pour noir, 'b' pour blanc).
+     * @return true si le joueur est en échec et mat, false sinon.
+     */
+    public boolean estEnEchecEtMat(char couleur) {
+        if (estEnEchec() != couleur) {
+            return false; // Le joueur n'est pas en échec, donc pas en échec et mat.
+        }
+
+        // Parcourir toutes les pièces du joueur en cours
+        for (byte i = 0; i < 8; i++) {
+            for (byte j = 0; j < 8; j++) {
+                if (echiquier[i][j] != null && echiquier[i][j].getCouleur() == couleur) {
+                    // Essayer tous les mouvements possibles pour cette pièce
+                    for (byte x = 0; x < 8; x++) {
+                        for (byte y = 0; y < 8; y++) {
+                            Position initiale = EchecsUtil.getPosition(i, j);
+                            Position finale = EchecsUtil.getPosition(x, y);
+
+                            byte ligne1 = EchecsUtil.indiceLigne(initiale);
+                            byte ligne2 = EchecsUtil.indiceLigne(finale);
+                            byte colonne1 = EchecsUtil.indiceColonne(initiale);
+                            byte colonne2 = EchecsUtil.indiceColonne(finale);
+
+                            Piece pieceADeplacer = echiquier[ligne1][colonne1];
+                            Piece pieceFinale = echiquier[ligne2][colonne2];
+
+                            // Vérifier si le mouvement est possible et le tester
+                            if (deplace(initiale, finale)) {
+                                changerTour();
+                                // Si le joueur n'est plus en échec, le mouvement est possible
+                                if (estEnEchec() != couleur) {
+
+                                    if (pieceADeplacer instanceof Roi) {
+                                        Roi roi = (Roi) pieceADeplacer;
+
+                                        // Roque du côté roi
+                                        if (colonne2 - colonne1 == 2 && ligne1 == ligne2) {
+
+                                            echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
+                                            echiquier[ligne1][colonne1] = roi;
+                                            roi.setABouge(false);
+
+                                            echiquier[ligne1][7] = echiquier[ligne2][colonne2 - 1]; // Annuler le déplacement de la tour
+                                            echiquier[ligne2][colonne2 - 1] = null;
+                                            ((Tour) echiquier[ligne2][colonne2 - 1]).setABouge(false);
+                                        } else if (colonne2 - colonne1 == -2 && ligne1 == ligne2) { // Roque du coté dame
+                                            echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
+                                            echiquier[ligne1][colonne1] = roi;
+                                            roi.setABouge(false);
+
+                                            echiquier[ligne1][0] = echiquier[ligne2][colonne2 + 1]; // Annuler le déplacement de la tour
+                                            echiquier[ligne2][colonne2 + 1] = null;
+                                            ((Tour) echiquier[ligne2][colonne2 + 1]).setABouge(false);
+                                        } else {
+                                            // Annuler le mouvement pour ne pas modifier l'état du jeu
+                                            echiquier[ligne1][colonne1] = roi;
+                                            roi.setABouge(false);
+                                            echiquier[ligne2][colonne2] = pieceFinale;
+                                        }
+                                    } else {
+                                        // Annuler le mouvement pour ne pas modifier l'état du jeu
+                                        echiquier[ligne1][colonne1] = pieceADeplacer;
+                                        echiquier[ligne2][colonne2] = pieceFinale;
+                                    }
+                                    return false; // Le joueur peut éviter l'échec et mat
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return true; // Aucun mouvement possible pour éviter l'échec et mat.
+    }
+
+    /**
      * Retourne la couleur n ou b du joueur qui a la main.
      *
      * @return char la couleur du joueur à qui c'est le tour de jouer.
@@ -391,5 +482,13 @@ public class PartieEchecs {
      */
     public char getCouleurJoueur2() {
         return couleurJoueur2;
+    }
+
+    public void setCouleurJoueur1(char couleurJoueur1) {
+        this.couleurJoueur1 = couleurJoueur1;
+    }
+
+    public void setCouleurJoueur2(char couleurJoueur2) {
+        this.couleurJoueur2 = couleurJoueur2;
     }
 }

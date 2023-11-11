@@ -1,9 +1,9 @@
 package com.chat.serveur;
 
 import com.chat.commun.net.Connexion;
+import com.echecs.PartieEchecs;
 
-import java.util.ArrayList;
-import java.util.ListIterator;
+import java.util.Random;
 import java.util.Vector;
 
 /**
@@ -21,6 +21,9 @@ public class ServeurChat extends Serveur {
 
     //Liste des invitations à un salon privé :
     protected Vector<Invitation> invitations = new Vector<>();
+
+    //Liste des invitations à une partie d'échec :
+    protected Vector<Invitation> invitationsEchec = new Vector<>();
 
     //Liste salons prives :
     protected Vector<SalonPrive> salonsPrives = new Vector<>();
@@ -157,6 +160,8 @@ public class ServeurChat extends Serveur {
      * Envoie la chaîne message à seulement un utilisateur qui a l'alias alias en privé
      *
      * @param alias String chaine de caractères représentant le message à envoyer
+     *
+     * @return Connexion représentant l'object Connexion d'un utilisateur
      */
     public Connexion envoyerMessagePrive(String alias) {
         for (Connexion utilisateur : connectes) {
@@ -189,11 +194,31 @@ public class ServeurChat extends Serveur {
      * @param alias1 String chaine de caractères représentant l'alias d'un utilisateur
      * @param alias2 String chaine de caractères représentant l'alias d'un utilisateur
      *
-     * @return Boolean représentant l'existence d'un salon privé ou non
+     * @return SalonPrive représentant l'objet salon privé ou null
      */
-    public boolean verifierExistenceSalonPrive(String alias1, String alias2) {
-        SalonPrive sallePrive = new SalonPrive(alias1, alias2);
-        return salonsPrives.contains(sallePrive);
+    public int verifierExistenceSalonPrive(String alias1, String alias2) {
+        for (SalonPrive salonPrive:salonsPrives) {
+            if (salonPrive.equals(new SalonPrive(alias1, alias2)))
+                return salonsPrives.indexOf(salonPrive);
+        }
+
+        return -1;
+    }
+
+    /**
+     * Trouver le salon privé en partie d'échec avec un utilisateur
+     *
+     * @param alias1 String chaine de caractères représentant l'alias d'un utilisateur
+     *
+     * @return SalonPrive représentant l'objet salon privé ou null
+     */
+    public int rechercheSalonPrive(String alias1) {
+        for (SalonPrive salonPrive:salonsPrives) {
+            if ((salonPrive.getAliasHote().equals(alias1) || salonPrive.getAliasInvite().equals(alias1)) && salonPrive.getPartieEchecs() != null)
+                return salonsPrives.indexOf(salonPrive);
+        }
+
+        return -1;
     }
 
     /**
@@ -204,12 +229,17 @@ public class ServeurChat extends Serveur {
      *
      * @return Invitation représentant l'objet invitation ou null
      */
-    public Invitation verifierExistenceInvitation(String alias1, String alias2) {
-        Invitation invitation = new Invitation(alias1, alias2);
-        if (invitations.contains(invitation))
-            return invitation;
-        else
-            return null;
+    public Invitation verifierExistenceInvitation(String alias1, String alias2, boolean isInvitationEchec) {
+        Invitation invitation = new Invitation(alias1, alias2, isInvitationEchec);
+        if (!isInvitationEchec) {
+            if (invitations.contains(invitation))
+                return invitation;
+        } else {
+            if (invitationsEchec.contains(invitation))
+                return invitation;
+        }
+
+        return null;
     }
 
     /**
@@ -223,28 +253,57 @@ public class ServeurChat extends Serveur {
     public void traiterJoinInvitationExistente(Connexion cnx, String aliasExpediteur, String aliasInvite, Invitation invitation) {
         boolean isAliasHote = invitation.getIsAliasHote();
         boolean isAliasInvite = invitation.getIsAliasInvite();
+        boolean isInvitationEchec = invitation.getIsInvitationEchec();
 
         if (isAliasHote) {
             cnx.envoyer("Vous avez déjà envoyé une invitation à " + aliasInvite + "!");
         } else if (isAliasInvite) {
-            salonsPrives.add(new SalonPrive(aliasInvite, aliasExpediteur));
-            invitations.remove(new Invitation(aliasInvite, aliasExpediteur));
+            if (!isInvitationEchec) {
+                salonsPrives.add(new SalonPrive(aliasInvite, aliasExpediteur));
+                invitations.remove(new Invitation(aliasInvite, aliasExpediteur, false));
 
-            envoyerMessagePrive(aliasInvite).envoyer("JOINOK " + aliasExpediteur);
-            envoyerMessagePrive(aliasExpediteur).envoyer("JOINOK " + aliasInvite);
+                envoyerMessagePrive(aliasInvite).envoyer("JOINOK " + aliasExpediteur);
+                envoyerMessagePrive(aliasExpediteur).envoyer("JOINOK " + aliasInvite);
+            } else {
+                for (Invitation invitationEchec : invitationsEchec) {
+                    if(invitationEchec.getAliasHote().equals(aliasExpediteur))
+                        invitationsEchec.remove(invitationEchec);
+                }
+
+                Random random = new Random();
+                char couleurAleatoire = random.nextBoolean() ? 'b' : 'n';
+
+                int indexSalonPrive = verifierExistenceSalonPrive(aliasInvite, aliasExpediteur);
+
+                PartieEchecs partieEchecs = new PartieEchecs();
+                partieEchecs.setAliasJoueur1(aliasInvite);
+                partieEchecs.setAliasJoueur2(aliasExpediteur);
+                partieEchecs.setCouleurJoueur1(couleurAleatoire);
+                partieEchecs.setCouleurJoueur2(couleurAleatoire == 'b' ? 'n' : 'b');
+                salonsPrives.get(indexSalonPrive).setPartieEchecs(partieEchecs);
+
+                invitationsEchec.remove(new Invitation(aliasInvite, aliasExpediteur, true));
+                envoyerMessagePrive(aliasInvite).envoyer("CHESSOK " + couleurAleatoire);
+                envoyerMessagePrive(aliasExpediteur).envoyer("CHESSOK " + (couleurAleatoire == 'b' ? 'n' : 'b'));
+            }
         }
     }
 
     /**
      * Gère la commande DECLINE pour une invitation
      *
-     * @param cnx Connexion objet qui représente l'utilisateur qui envoit la commande
+     * @param cnx             Connexion objet qui représente l'utilisateur qui envoit la commande
      * @param aliasExpediteur String chaine de caractères représentant l'alias de l'expéditeur
-     * @param aliasInvite String chaine de caractères représentant l'alias de l'invité
+     * @param aliasInvite     String chaine de caractères représentant l'alias de l'invité
+     * @param invitation      Invitation Objet représentant l'invitation
      */
-    public void traiterDeclineInvitation(Connexion cnx, String aliasExpediteur, String aliasInvite) {
-        Invitation invitation = new Invitation(aliasExpediteur, aliasInvite);
-        invitations.remove(invitation);
+    public void traiterDeclineInvitation(Connexion cnx, String aliasExpediteur, String aliasInvite, Invitation invitation) {
+        boolean isInvitationEchec = invitation.getIsInvitationEchec();
+
+        if (!isInvitationEchec) {
+            invitations.remove(invitation);
+        } else
+            invitationsEchec.remove(invitation);
 
         boolean isAliasHote = invitation.getIsAliasHote();
         boolean isAliasInvite = invitation.getIsAliasInvite();

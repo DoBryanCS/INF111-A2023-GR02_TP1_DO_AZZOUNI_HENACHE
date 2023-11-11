@@ -1,11 +1,30 @@
 package com.chat.serveur;
 
+import com.echecs.PartieEchecs;
+
 public class SalonPrive {
     private String aliasHote, aliasInvite;
+    private PartieEchecs partieEchecs;
 
     public SalonPrive(String aliasHote, String aliasInvite) {
         this.aliasHote = aliasHote;
         this.aliasInvite = aliasInvite;
+    }
+
+    public PartieEchecs getPartieEchecs() {
+        return partieEchecs;
+    }
+
+    public String getAliasHote() {
+        return aliasHote;
+    }
+
+    public String getAliasInvite() {
+        return aliasInvite;
+    }
+
+    public void setPartieEchecs(PartieEchecs partieEchecs) {
+        this.partieEchecs = partieEchecs;
     }
 
     @Override
