@@ -2,7 +2,7 @@ package com.echecs.pieces;
 
 import com.echecs.Position;
 
-public class Roi extends Piece{
+public class Roi extends Piece {
     private boolean aBouge;
     public Roi(char couleur, boolean aBouge) {
         super(couleur);

@@ -21,7 +21,9 @@ public class PartieEchecs {
     private String aliasJoueur1, aliasJoueur2;
     private char couleurJoueur1, couleurJoueur2;
 
-    private char couleurDernierePieceDeplace;
+    private boolean roqueRoiVientEtreFait = false;
+
+    private boolean roqueDameVientEtreFait = false;
 
     /**
      * La couleur de celui à qui c'est le tour de jouer (n ou b).
@@ -100,7 +102,6 @@ public class PartieEchecs {
         byte ligne2 = EchecsUtil.indiceLigne(finale);
         byte colonne1 = EchecsUtil.indiceColonne(initiale);
         byte colonne2 = EchecsUtil.indiceColonne(finale);
-        char couleurAdverse = (tour == 'b') ? 'n' : 'b';
 
         // Vérifier la validité des positions
         if (!EchecsUtil.positionValide(initiale) || !EchecsUtil.positionValide(finale))
@@ -120,10 +121,6 @@ public class PartieEchecs {
 
         // Vérifier si la couleur de la pièce finale est la même que la couleur du tour
         if (pieceFinale != null && pieceFinale.getCouleur() == tour)
-            return false;
-
-        // Vérifier si la pièce peut se déplacer de manière valide
-        if (!pieceADeplacer.peutSeDeplacer(initiale, finale, echiquier))
             return false;
 
         // Vérifier le Roque
@@ -161,16 +158,22 @@ public class PartieEchecs {
                 // Déplacement simple
                 echiquier[ligne2][colonne2] = pieceADeplacer;
                 echiquier[ligne1][colonne1] = null;
+
+                char estEnEchec = estEnEchec();
+                // Vérifier si la piece est en échec après le déplacement
+                if (estEnEchec == tour) {
+                    echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement
+                    echiquier[ligne1][colonne1] = pieceADeplacer;
+                    return false;
+                }
             }
 
             // Vérifier la promotion automatique en dame
             if (pieceADeplacer instanceof Pion) {
-                if ((pieceADeplacer.getCouleur() == 'b' && ligne2 == 7) || (pieceADeplacer.getCouleur() == 'n' && ligne2 == 0)) {
+                if ((pieceADeplacer.getCouleur() == 'b' && ligne2 == 0) || (pieceADeplacer.getCouleur() == 'n' && ligne2 == 7)) {
                     echiquier[ligne2][colonne2] = new Dame(tour); // Remplacez par votre classe Dame
                 }
             }
-
-            couleurDernierePieceDeplace = tour;
 
             // Changer le tour
             changerTour();
@@ -183,7 +186,6 @@ public class PartieEchecs {
 
     // Roque du côté roi
     private boolean faireRoqueCoteRoi(Roi roi, Piece pieceFinale, int ligne1, int colonne1, int ligne2, int colonne2) {
-        char couleurAdverse = (tour == 'b') ? 'n' : 'b';
 
         // Vérifier les conditions du roque
         if (roi.getABouge() || echiquier[ligne1][7] == null || !(echiquier[ligne1][7] instanceof Tour) || ((Tour) echiquier[ligne1][7]).getABouge()) {
@@ -191,7 +193,7 @@ public class PartieEchecs {
         }
 
         // Vérifier s'il y a des pièces entre le roi et la tour
-        for (int i = colonne1 + 1; i < colonne2; i++) {
+        for (int i = colonne1 + 1; i < colonne2 + 1; i++) {
             if (echiquier[ligne1][i] != null) {
                 return false;
             }
@@ -221,7 +223,7 @@ public class PartieEchecs {
             return false;
         }
 
-        couleurDernierePieceDeplace = tour;
+        roqueRoiVientEtreFait = true;
 
         // Changer le tour
         changerTour();
@@ -237,7 +239,7 @@ public class PartieEchecs {
         }
 
         // Vérifier s'il y a des pièces entre le roi et la tour
-        for (int i = colonne2 + 1; i < colonne1; i++) {
+        for (int i = colonne2 + 1; i < colonne1 - 1; i++) {
             if (echiquier[ligne1][i] != null) {
                 return false;
             }
@@ -267,7 +269,7 @@ public class PartieEchecs {
             return false;
         }
 
-        couleurDernierePieceDeplace = tour;
+        roqueDameVientEtreFait = true;
 
         // Changer le tour
         changerTour();
@@ -388,7 +390,6 @@ public class PartieEchecs {
                                 changerTour();
                                 // Si le joueur n'est plus en échec, le mouvement est possible
                                 if (estEnEchec() != couleur) {
-
                                     if (pieceADeplacer instanceof Roi) {
                                         Roi roi = (Roi) pieceADeplacer;
 
@@ -422,6 +423,38 @@ public class PartieEchecs {
                                         echiquier[ligne2][colonne2] = pieceFinale;
                                     }
                                     return false; // Le joueur peut éviter l'échec et mat
+                                }
+                                if (pieceADeplacer instanceof Roi) {
+                                    Roi roi = (Roi) pieceADeplacer;
+
+                                    // Roque du côté roi
+                                    if (colonne2 - colonne1 == 2 && ligne1 == ligne2) {
+
+                                        echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
+                                        echiquier[ligne1][colonne1] = roi;
+                                        roi.setABouge(false);
+
+                                        echiquier[ligne1][7] = echiquier[ligne2][colonne2 - 1]; // Annuler le déplacement de la tour
+                                        echiquier[ligne2][colonne2 - 1] = null;
+                                        ((Tour) echiquier[ligne2][colonne2 - 1]).setABouge(false);
+                                    } else if (colonne2 - colonne1 == -2 && ligne1 == ligne2) { // Roque du coté dame
+                                        echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
+                                        echiquier[ligne1][colonne1] = roi;
+                                        roi.setABouge(false);
+
+                                        echiquier[ligne1][0] = echiquier[ligne2][colonne2 + 1]; // Annuler le déplacement de la tour
+                                        echiquier[ligne2][colonne2 + 1] = null;
+                                        ((Tour) echiquier[ligne2][colonne2 + 1]).setABouge(false);
+                                    } else {
+                                        // Annuler le mouvement pour ne pas modifier l'état du jeu
+                                        echiquier[ligne1][colonne1] = roi;
+                                        roi.setABouge(false);
+                                        echiquier[ligne2][colonne2] = pieceFinale;
+                                    }
+                                } else {
+                                    // Annuler le mouvement pour ne pas modifier l'état du jeu
+                                    echiquier[ligne1][colonne1] = pieceADeplacer;
+                                    echiquier[ligne2][colonne2] = pieceFinale;
                                 }
                             }
                         }
@@ -490,5 +523,21 @@ public class PartieEchecs {
 
     public void setCouleurJoueur2(char couleurJoueur2) {
         this.couleurJoueur2 = couleurJoueur2;
+    }
+
+    public boolean getRoqueRoiVientEtreFait() {
+        return roqueRoiVientEtreFait;
+    }
+
+    public void setRoqueRoiVientEtreFait(boolean roqueRoiVientEtreFait) {
+        this.roqueRoiVientEtreFait = roqueRoiVientEtreFait;
+    }
+
+    public boolean getRoqueDameVientEtreFait() {
+        return roqueDameVientEtreFait;
+    }
+
+    public void setRoqueDameVientEtreFait(boolean roqueDameVientEtreFait) {
+        this.roqueDameVientEtreFait = roqueDameVientEtreFait;
     }
 }

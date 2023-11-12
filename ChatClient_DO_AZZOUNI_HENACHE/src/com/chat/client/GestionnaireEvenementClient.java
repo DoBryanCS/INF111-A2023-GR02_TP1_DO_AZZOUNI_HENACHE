@@ -35,8 +35,10 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
     public void traiter(Evenement evenement) {
         Object source = evenement.getSource();
         Connexion cnx;
-        String typeEvenement, arg;
-        String[] membres, messages, alias;
+        String typeEvenement, arg, digits, deplacement;
+        String[] membres, messages, alias, arguments;
+        char[] chars;
+        EtatPartieEchecs etatPartieEchecs;
 
         if (source instanceof Connexion) {
             cnx = (Connexion) source;
@@ -90,13 +92,18 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
                     arg = evenement.getArgument();
                     System.out.println("\t\t" + arg + " a quitter le salon prive avec vous!");
                     break;
-                case "CHESS" : //Informe le client que alias a quitté le salon privé.
+                case "CHESS" : //Informe le client de la réception d’une invitation à une partie d'échec.
                     arg = evenement.getArgument();
                     System.out.println("\t\t" + "Vous avez recu une invitation a une partie d'echec de " + arg + "!");
                     break;
                 case "CHESSOK" : //Valide le démarrage d’une partie d’échecs pour les clients
                     arg = evenement.getArgument();
                     ((ClientChat) client).nouvellePartie();
+
+                    etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                    System.out.println(etatPartieEchecs);
+                    System.out.println();
+
                     if (arg.equals("b"))
                         System.out.println("\t\t" + "Partie d'echec cree. Vous etes blanc, a vous de commencer!");
                     else
@@ -105,22 +112,25 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
                 case "MOVE" : //Valide un déplacement de pièce envoyé par un client.
                     arg = evenement.getArgument();
 
-                    // Définition du motif de la commande
-                    String motif = "([a-zA-Z])(\\d+)[-\\s]?([a-zA-Z])(\\d+)";
+                    arg = arg.replaceAll("[\\s-]", "");
 
-                    // Création d'un objet Pattern
-                    Pattern pattern = Pattern.compile(motif);
+                    chars = arg.toCharArray();
+                    digits = "";
 
-                    // Création d'un objet Matcher avec la commande
-                    Matcher matcher = pattern.matcher(arg);
+                    for (char c : chars) {
+                        if (Character.isLetter(c)) {
+                        } else if (Character.isDigit(c)) {
+                            digits += c;
+                        }
+                    }
 
-                    if (matcher.matches()) {
-                        char colonne1 = matcher.group(1).charAt(0);
-                        byte ligne1 = Byte.parseByte(matcher.group(2));
-                        char colonne2 = matcher.group(3).charAt(0);
-                        byte ligne2 = Byte.parseByte(matcher.group(4));
+                    if (chars.length >= 4) {
+                        char colonne1 = chars[0];
+                        byte ligne1 = Byte.parseByte(digits.substring(0, 1));
+                        char colonne2 = chars[2];
+                        byte ligne2 = Byte.parseByte(digits.substring(1, 2));
 
-                        EtatPartieEchecs etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                        etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
                         char[][] nouvelEtat = etatPartieEchecs.getEtatEchiquier();
 
                         char pieceDeplacee = nouvelEtat[8 - ligne1][colonne1 - 'a'];
@@ -134,19 +144,153 @@ public class GestionnaireEvenementClient implements GestionnaireEvenement {
 
                         System.out.println(etatPartieEchecs);
                         System.out.println();
-                    }
 
+                        if (chars.length >= 8 && digits.length() >= 4) {
+                            char colonne3 = chars[4];
+                            byte ligne3 = Byte.parseByte(digits.substring(2, 3));
+                            char colonne4 = chars[6];
+                            byte ligne4 = Byte.parseByte(digits.substring(3, 4));
+
+                            etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                            nouvelEtat = etatPartieEchecs.getEtatEchiquier();
+
+                            pieceDeplacee = nouvelEtat[8 - ligne3][colonne3 - 'a'];
+                            nouvelEtat[8 - ligne3][colonne3 - 'a'] = ' ';
+
+                            nouvelEtat[8 - ligne4][colonne4 - 'a'] = pieceDeplacee;
+
+                            etatPartieEchecs.setEtatEchiquier(nouvelEtat);
+
+                            ((ClientChat) client).setEtatPartieEchecs(etatPartieEchecs);
+
+                            System.out.println(etatPartieEchecs);
+                            System.out.println();
+                        }
+                    }
                     break;
                 case "INVALID" : //Invalide un déplacement de pièce envoyé par un client.
                     System.out.println("\t\t" + "Invalide, essayez un autre mouvement!");
                     break;
-                case "ECHEC" : //Informe le client qu’il y a échec et mat et donne l’alias du gagnant.
+                case "ECHEC" : //Informe un client que son roi est en échec.
                     arg = evenement.getArgument();
-                    System.out.println("\t\t" + arg + " est en echec!");
+                    arguments = arg.split("/");
+                    deplacement = arguments[1].replaceAll("[\\s-]", "");
+
+                    chars = deplacement.toCharArray();
+                    digits = "";
+
+                    for (char c : chars) {
+                        if (Character.isLetter(c)) {
+                        } else if (Character.isDigit(c)) {
+                            digits += c;
+                        }
+                    }
+                    if (chars.length >= 4) {
+                        char colonne1 = chars[0];
+                        byte ligne1 = Byte.parseByte(digits.substring(0, 1));
+                        char colonne2 = chars[2];
+                        byte ligne2 = Byte.parseByte(digits.substring(1, 2));
+
+                        etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                        char[][] nouvelEtat = etatPartieEchecs.getEtatEchiquier();
+
+                        char pieceDeplacee = nouvelEtat[8 - ligne1][colonne1 - 'a'];
+                        nouvelEtat[8 - ligne1][colonne1 - 'a'] = ' ';
+
+                        nouvelEtat[8 - ligne2][colonne2 - 'a'] = pieceDeplacee;
+
+                        etatPartieEchecs.setEtatEchiquier(nouvelEtat);
+
+                        ((ClientChat) client).setEtatPartieEchecs(etatPartieEchecs);
+
+                        System.out.println(etatPartieEchecs);
+                        System.out.println();
+
+                        if (chars.length >= 8 && digits.length() >= 4) {
+                            char colonne3 = chars[4];
+                            byte ligne3 = Byte.parseByte(digits.substring(2, 3));
+                            char colonne4 = chars[6];
+                            byte ligne4 = Byte.parseByte(digits.substring(3, 4));
+
+                            etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                            nouvelEtat = etatPartieEchecs.getEtatEchiquier();
+
+                            pieceDeplacee = nouvelEtat[8 - ligne3][colonne3 - 'a'];
+                            nouvelEtat[8 - ligne3][colonne3 - 'a'] = ' ';
+
+                            nouvelEtat[8 - ligne4][colonne4 - 'a'] = pieceDeplacee;
+
+                            etatPartieEchecs.setEtatEchiquier(nouvelEtat);
+
+                            ((ClientChat) client).setEtatPartieEchecs(etatPartieEchecs);
+
+                            System.out.println(etatPartieEchecs);
+                            System.out.println();
+                        }
+                    }
+                    System.out.println("\t\t" + arguments[0] + " est en echec!");
                     break;
                 case "MAT" : //Informe le client qu’il y a échec et mat et donne l’alias du gagnant.
-                        arg = evenement.getArgument();
-                    System.out.println("\t\t" + "Echec et mat, le gagnant est " + arg + "!");
+                    arg = evenement.getArgument();
+
+                    arguments = arg.split("/");
+                    deplacement = arguments[
+                            1].replaceAll("[\\s-]", "");
+
+                    chars = deplacement.toCharArray();
+                    digits = "";
+
+                    for (char c : chars) {
+                        if (Character.isLetter(c)) {
+                        } else if (Character.isDigit(c)) {
+                            digits += c;
+                        }
+                    }
+                    if (chars.length >= 4) {
+                        char colonne1 = chars[0];
+                        byte ligne1 = Byte.parseByte(digits.substring(0, 1));
+                        char colonne2 = chars[2];
+                        byte ligne2 = Byte.parseByte(digits.substring(1, 2));
+
+                        etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                        char[][] nouvelEtat = etatPartieEchecs.getEtatEchiquier();
+
+                        char pieceDeplacee = nouvelEtat[8 - ligne1][colonne1 - 'a'];
+                        nouvelEtat[8 - ligne1][colonne1 - 'a'] = ' ';
+
+                        nouvelEtat[8 - ligne2][colonne2 - 'a'] = pieceDeplacee;
+
+                        etatPartieEchecs.setEtatEchiquier(nouvelEtat);
+
+                        ((ClientChat) client).setEtatPartieEchecs(etatPartieEchecs);
+
+                        System.out.println(etatPartieEchecs);
+                        System.out.println();
+
+                        if (chars.length >= 8 && digits.length() >= 4) {
+                            char colonne3 = chars[4];
+                            byte ligne3 = Byte.parseByte(digits.substring(2, 3));
+                            char colonne4 = chars[6];
+                            byte ligne4 = Byte.parseByte(digits.substring(3, 4));
+
+                            etatPartieEchecs = ((ClientChat) client).getEtatPartieEchecs();
+                            nouvelEtat = etatPartieEchecs.getEtatEchiquier();
+
+                            pieceDeplacee = nouvelEtat[8 - ligne3][colonne3 - 'a'];
+                            nouvelEtat[8 - ligne3][colonne3 - 'a'] = ' ';
+
+                            nouvelEtat[8 - ligne4][colonne4 - 'a'] = pieceDeplacee;
+
+                            etatPartieEchecs.setEtatEchiquier(nouvelEtat);
+
+                            ((ClientChat) client).setEtatPartieEchecs(etatPartieEchecs);
+
+                            System.out.println(etatPartieEchecs);
+                            System.out.println();
+                        }
+                    }
+                    System.out.println("\t\t" + "Echec et mat, le gagnant est " + arguments[0] + "!");
+                    ((ClientChat) client).setEtatPartieEchecs(null);
                     break;
                 case "ABANDON" : //Abandonne une partie d’échecs.
                     arg = evenement.getArgument();

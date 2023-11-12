@@ -3,7 +3,7 @@ package com.echecs.pieces;
 import com.echecs.Position;
 import com.echecs.util.EchecsUtil;
 
-public class Tour extends Piece{
+public class Tour extends Piece {
     private boolean aBouge;
     public Tour(char couleur, boolean aBouge) {
         super(couleur);

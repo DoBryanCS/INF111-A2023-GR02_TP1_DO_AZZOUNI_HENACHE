@@ -15,6 +15,7 @@ public class EtatPartieEchecs {
                 {'T', 'C', 'F', 'D', 'R', 'F', 'C', 'T'}
         };
     }
+
     public char[][] getEtatEchiquier() {
         return etatEchiquier;
     }
@@ -39,5 +40,4 @@ public class EtatPartieEchecs {
         }
         return result;
     }
-
 }

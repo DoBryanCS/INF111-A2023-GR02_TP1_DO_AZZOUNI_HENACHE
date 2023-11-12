@@ -59,24 +59,18 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                 case "LIST": //Envoie la liste des alias des personnes connectées :
                     cnx.envoyer("LIST " + serveur.list());
                     break;
-
-                //Ajoutez ici d’autres case pour gérer d’autres commandes.
-
                 case "MSG": //Envoie un message à tous les utilisateurs connectés sauf l'expéditeur :
                     aliasExpediteur = cnx.getAlias();
                     msg = evenement.getArgument();
                     serveur.envoyerATousSauf(msg, aliasExpediteur);
                     break;
-
                 case "HIST": //Affiche l'historique des messages :
                     cnx.envoyer("HIST " + serveur.historique());
                     break;
-
                 case "JOIN": //Invite un utilisateur à chatter en privé ou accepte l’invitation qui lui a été
                     //préalablement envoyée par un utilisateur :
                     aliasExpediteur = cnx.getAlias();
                     aliasInvite = evenement.getArgument();
-
 
                     indexSalonPrive = serveur.verifierExistenceSalonPrive(aliasExpediteur, aliasInvite);
                     utilisateurExiste = serveur.verifierExistenceUtilisateur(aliasInvite);
@@ -102,9 +96,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
 
                     if (invitationSoi)
                         cnx.envoyer("Vous ne pouvez pas vous inviter vous-même!");
-
                     break;
-
                 case "DECLINE": //Refuse une invitation à chatter en privé d'un utilisateur ou annule une invitation
                     //qu'il a préalablement envoyée à un utilisateur :
                     aliasExpediteur = cnx.getAlias();
@@ -141,17 +133,12 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
 
                     if (invitationSoi)
                         cnx.envoyer("Vous ne pouvez pas vous refuser ou annuler une invitation à vous-même!");
-
                     break;
-
                 case "INV": //Obtenir la liste de tous les alias des personnes qui lui ont envoyé des invitations :
                     aliasExpediteur = cnx.getAlias();
-
                     listInvitations = serveur.listInvitations(aliasExpediteur);
                     cnx.envoyer("INV " + listInvitations);
-
                     break;
-
                 case "PRV": //Envoyer un message à un utilisateur dans un salon privé :
                     aliasExpediteur = cnx.getAlias();
                     String aliasMessage = evenement.getArgument();
@@ -167,9 +154,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         serveur.envoyerMessagePrive(aliasInvite).envoyer(msg);
                     else
                         cnx.envoyer("Le salon privé avec " + aliasInvite + " n'existe pas!");
-
                     break;
-
                 case "QUIT": //Quitter le salon privé avec un utilisateur :
                     aliasExpediteur = cnx.getAlias();
                     aliasInvite = evenement.getArgument();
@@ -182,9 +167,7 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                         serveur.envoyerMessagePrive(aliasInvite).envoyer("QUIT " + aliasExpediteur);
                     } else
                         cnx.envoyer("Le salon privé avec " + aliasInvite + " n'existe pas!");
-
                     break;
-
                 case "CHESS":
                     aliasExpediteur = cnx.getAlias();
                     aliasInvite = evenement.getArgument();
@@ -192,7 +175,6 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                     indexSalonPrive = serveur.verifierExistenceSalonPrive(aliasExpediteur, aliasInvite);
 
                     invitation = serveur.verifierExistenceInvitation(aliasExpediteur, aliasInvite, true);
-
 
                         if (indexSalonPrive != -1) {
                             if (serveur.salonsPrives.get(indexSalonPrive).getPartieEchecs() == null) {
@@ -207,72 +189,110 @@ public class GestionnaireEvenementServeur implements GestionnaireEvenement {
                                 cnx.envoyer("Vous êtes déjà en partie d'échec avec quelqu'un!");
                         } else
                             cnx.envoyer("Le salon privé avec " + aliasInvite + " n'existe pas!");
-
                     break;
-
                 case "MOVE" :
                     aliasExpediteur = cnx.getAlias();
                     deplacement = evenement.getArgument();
                     indexSalonPrive = serveur.rechercheSalonPrive(aliasExpediteur);
-                    partieEchecs = serveur.salonsPrives.get(indexSalonPrive).getPartieEchecs();
-                    char couleurJoueurActuel = aliasExpediteur.equals(partieEchecs.getAliasJoueur1()) ?
-                            partieEchecs.getCouleurJoueur1() : partieEchecs.getCouleurJoueur2();
-                    String aliasJoueurEnnemi = aliasExpediteur.equals(partieEchecs.getAliasJoueur1()) ?
-                            partieEchecs.getAliasJoueur2() : partieEchecs.getAliasJoueur1();
-                    char couleurJoueurEnnemi = couleurJoueurActuel == 'b' ? 'n' : 'b';
+                    if (indexSalonPrive != -1 && serveur.salonsPrives.get(indexSalonPrive).getPartieEchecs() != null) {
+                        partieEchecs = serveur.salonsPrives.get(indexSalonPrive).getPartieEchecs();
+                        char couleurJoueurActuel = aliasExpediteur.equals(partieEchecs.getAliasJoueur1()) ?
+                                partieEchecs.getCouleurJoueur1() : partieEchecs.getCouleurJoueur2();
+                        String aliasJoueurEnnemi = aliasExpediteur.equals(partieEchecs.getAliasJoueur1()) ?
+                                partieEchecs.getAliasJoueur2() : partieEchecs.getAliasJoueur1();
+                        char couleurJoueurEnnemi = couleurJoueurActuel == 'b' ? 'n' : 'b';
 
-                    if (partieEchecs.getTour() != couleurJoueurActuel) {
-                        cnx.envoyer("Ce n'est pas votre tour de jouer!");
-                    } else {
-                        // Définition du motif de la commande
-                        String motif = "([a-zA-Z])(\\d+)[-\\s]?([a-zA-Z])(\\d+)";
+                        if (partieEchecs.getTour() != couleurJoueurActuel) {
+                            cnx.envoyer("Ce n'est pas votre tour de jouer!");
+                        } else {
+                            deplacement = deplacement.replaceAll("[\\s-]", "");
 
-                        // Création d'un objet Pattern
-                        Pattern pattern = Pattern.compile(motif);
+                            char[] chars = deplacement.toCharArray();
+                            String digits = "";
 
-                        // Création d'un objet Matcher avec la commande
-                        Matcher matcher = pattern.matcher(deplacement);
-
-                        // Vérification du format
-                        if (matcher.matches()) {
-                            char colonne1 = matcher.group(1).charAt(0);
-                            byte ligne1 = Byte.parseByte(matcher.group(2));
-                            char colonne2 = matcher.group(3).charAt(0);
-                            byte ligne2 = Byte.parseByte(matcher.group(4));
-
-                            if(partieEchecs.deplace(new Position(colonne1, ligne1), new Position(colonne2, ligne2))) {
-                                if (!partieEchecs.estEnEchecEtMat(partieEchecs.getTour())) {
-                                    cnx.envoyer("MOVE " + deplacement);
-                                    serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer("MOVE " + deplacement);
-                                    if (partieEchecs.estEnEchec() == couleurJoueurEnnemi) {
-                                        cnx.envoyer("ECHEC " + aliasJoueurEnnemi);
-                                        serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer("ECHEC " + aliasJoueurEnnemi);
-                                    }
-                                } else {
-                                    cnx.envoyer("MAT " + aliasExpediteur);
-                                    serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer("MAT " + aliasExpediteur);
+                            for (char c : chars) {
+                                if (Character.isLetter(c)) {
+                                } else if (Character.isDigit(c)) {
+                                    digits += c;
                                 }
-                            } else {
-                                cnx.envoyer("INVALID");
                             }
-                        } else
-                            cnx.envoyer("INVALID");
-                    }
 
+                            // Vérification du format
+                            if (chars.length == 4 && digits.length() == 2) {
+                                char colonne1 = chars[0];
+                                byte ligne1 = Byte.parseByte(digits.substring(0, 1));
+                                char colonne2 = chars[2];
+                                byte ligne2 = Byte.parseByte(digits.substring(1, 2));
+
+                                String deplacementRoqueRoi = "h" + ligne1 + "f" + ligne1;
+                                String deplacementRoqueDame = "a" + ligne1 + "d" + ligne1;
+
+                                if (partieEchecs.deplace(new Position(colonne1, ligne1), new Position(colonne2, ligne2))) {
+                                    boolean roqueRoiFait = partieEchecs.getRoqueRoiVientEtreFait();
+                                    boolean roqueDameFait = partieEchecs.getRoqueDameVientEtreFait();
+
+                                    if (!partieEchecs.estEnEchecEtMat(partieEchecs.getTour())) {
+                                        roqueRoiFait = partieEchecs.getRoqueRoiVientEtreFait();
+                                        roqueDameFait = partieEchecs.getRoqueDameVientEtreFait();
+                                        boolean estEnEchec = partieEchecs.estEnEchec() == couleurJoueurEnnemi;
+
+                                        if ((roqueRoiFait || roqueDameFait) && !estEnEchec) {
+                                            String deplacementRoque = roqueRoiFait ? deplacementRoqueRoi : deplacementRoqueDame;
+                                            cnx.envoyer("MOVE " + deplacement + deplacementRoque);
+                                            serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer("MOVE " + deplacement + deplacementRoque);
+                                            partieEchecs.setRoqueRoiVientEtreFait(false);
+                                            partieEchecs.setRoqueDameVientEtreFait(false);
+                                        } else if ((!roqueRoiFait && !roqueDameFait) && !estEnEchec) {
+                                            cnx.envoyer("MOVE " + deplacement);
+                                            serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer("MOVE " + deplacement);
+                                        } else if (roqueRoiFait || roqueDameFait) {
+                                            String deplacementRoque = roqueRoiFait ? deplacementRoqueRoi : deplacementRoqueDame;
+                                            String moveMessage = "ECHEC " + aliasJoueurEnnemi + "/" + deplacement + deplacementRoque;
+                                            cnx.envoyer(moveMessage);
+                                            serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer(moveMessage);
+                                            partieEchecs.setRoqueRoiVientEtreFait(false);
+                                            partieEchecs.setRoqueDameVientEtreFait(false);
+                                        } else {
+                                            String moveMessage = "ECHEC " + aliasJoueurEnnemi + "/" + deplacement;
+                                            cnx.envoyer(moveMessage);
+                                            serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer(moveMessage);
+                                        }
+                                    } else {
+                                        if (roqueRoiFait || roqueDameFait) {
+                                            String deplacementRoque = roqueRoiFait ? deplacementRoqueRoi : deplacementRoqueDame;
+                                            String moveMessage = "MAT " + aliasExpediteur + "/" + deplacement + deplacementRoque;
+                                            cnx.envoyer(moveMessage);
+                                            serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer(moveMessage);
+                                            partieEchecs.setRoqueRoiVientEtreFait(false);
+                                            partieEchecs.setRoqueDameVientEtreFait(false);
+                                        } else {
+                                            cnx.envoyer("MAT " + aliasExpediteur + "/" + deplacement);
+                                            serveur.envoyerMessagePrive(aliasJoueurEnnemi).envoyer("MAT " + aliasExpediteur + "/" + deplacement);
+                                            serveur.salonsPrives.get(indexSalonPrive).setPartieEchecs(null);
+                                        }
+                                    }
+                                } else
+                                    cnx.envoyer("INVALID");
+                            } else
+                                cnx.envoyer("INVALID");
+                        }
+                    } else
+                        cnx.envoyer("Vous n'êtes pas dans une partie d'échec!");
                     break;
-
                 case "ABANDON" : //Abandonne une partie d’échecs.
                     aliasExpediteur = cnx.getAlias();
                     indexSalonPrive = serveur.rechercheSalonPrive(aliasExpediteur);
-                    partieEchecs = serveur.salonsPrives.get(indexSalonPrive).getPartieEchecs();
-                    String aliasEnnemi = aliasExpediteur.equals(partieEchecs.getAliasJoueur1()) ?
-                            partieEchecs.getAliasJoueur2() : partieEchecs.getAliasJoueur1();
+                    if (indexSalonPrive != -1 && serveur.salonsPrives.get(indexSalonPrive).getPartieEchecs() != null) {
+                        partieEchecs = serveur.salonsPrives.get(indexSalonPrive).getPartieEchecs();
+                        String aliasEnnemi = aliasExpediteur.equals(partieEchecs.getAliasJoueur1()) ?
+                                partieEchecs.getAliasJoueur2() : partieEchecs.getAliasJoueur1();
 
-                    serveur.salonsPrives.get(indexSalonPrive).setPartieEchecs(null);
-                    cnx.envoyer("ABANDON " + aliasEnnemi);
-                    serveur.envoyerMessagePrive(aliasEnnemi).envoyer("ABANDON " + aliasEnnemi);
+                        cnx.envoyer("ABANDON " + aliasEnnemi);
+                        serveur.envoyerMessagePrive(aliasEnnemi).envoyer("ABANDON " + aliasEnnemi);
+                        serveur.salonsPrives.get(indexSalonPrive).setPartieEchecs(null);
+                    } else
+                        cnx.envoyer("Vous n'êtes pas dans une partie d'échec!");
                     break;
-
                 default: //Renvoyer le texte recu convertit en majuscules :
                     msg = (evenement.getType() + " " + evenement.getArgument()).toUpperCase();
                     cnx.envoyer(msg);
