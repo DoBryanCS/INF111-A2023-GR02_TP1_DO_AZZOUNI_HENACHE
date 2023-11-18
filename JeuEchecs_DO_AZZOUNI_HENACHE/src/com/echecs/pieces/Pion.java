@@ -3,13 +3,13 @@ package com.echecs.pieces;
 import com.echecs.Position;
 import com.echecs.util.EchecsUtil;
 
-public class Pion extends Piece {
+public class Pion extends com.echecs.pieces.Piece {
     public Pion(char couleur) {
         super(couleur);
     }
 
     @Override
-    public boolean peutSeDeplacer(Position pos1, Position pos2, Piece[][] echiquier) {
+    public boolean peutSeDeplacer(Position pos1, Position pos2, com.echecs.pieces.Piece[][] echiquier) {
         byte ligne1 = EchecsUtil.indiceLigne(pos1);
         byte ligne2 = EchecsUtil.indiceLigne(pos2);
         byte colonne1 = EchecsUtil.indiceColonne(pos1);
@@ -24,7 +24,7 @@ public class Pion extends Piece {
         return false;
     }
 
-    private boolean peutSeDeplacerBlanc(byte ligne1, byte ligne2, byte colonne1, byte colonne2, Piece[][] echiquier) {
+    private boolean peutSeDeplacerBlanc(byte ligne1, byte ligne2, byte colonne1, byte colonne2, com.echecs.pieces.Piece[][] echiquier) {
         // 2 cases depuis la ligne de départ
         if (ligne1 == 6 && ligne2 == 4 && colonne2 == colonne1) {
             return echiquier[5][colonne2] == null && echiquier[4][colonne2] == null;

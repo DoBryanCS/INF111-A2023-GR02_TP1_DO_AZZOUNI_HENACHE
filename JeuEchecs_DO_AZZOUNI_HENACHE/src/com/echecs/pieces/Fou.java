@@ -3,12 +3,12 @@ package com.echecs.pieces;
 import com.echecs.Position;
 import com.echecs.util.EchecsUtil;
 
-public class Fou extends Piece {
+public class Fou extends com.echecs.pieces.Piece {
     public Fou(char couleur) {
         super(couleur);
     }
     @Override
-    public boolean peutSeDeplacer(Position pos1, Position pos2, Piece[][] echiquier) {
+    public boolean peutSeDeplacer(Position pos1, Position pos2, com.echecs.pieces.Piece[][] echiquier) {
         byte ligne1 = EchecsUtil.indiceLigne(pos1);
         byte ligne2 = EchecsUtil.indiceLigne(pos2);
         byte colonne1 = EchecsUtil.indiceColonne(pos1);

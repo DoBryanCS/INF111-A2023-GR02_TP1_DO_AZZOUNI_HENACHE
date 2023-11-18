@@ -3,7 +3,7 @@ package com.echecs.pieces;
 import com.echecs.Position;
 import com.echecs.util.EchecsUtil;
 
-public class Cavalier extends Piece {
+public class Cavalier extends com.echecs.pieces.Piece {
     public Cavalier(char couleur) {
         super(couleur);
     }

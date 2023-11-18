@@ -140,38 +140,21 @@ public class PartieEchecs {
 
         // Déplacement normal
         if (pieceADeplacer.peutSeDeplacer(initiale, finale, echiquier)) {
+            echiquier[ligne2][colonne2] = pieceADeplacer;
+            echiquier[ligne1][colonne1] = null;
 
-            // Manger la pièce adverse
-            if (pieceFinale != null) {
-
-                echiquier[ligne2][colonne2] = pieceADeplacer;
-                echiquier[ligne1][colonne1] = null;
-
-                char estEnEchec = estEnEchec();
-                // Vérifier si le roi est en échec après le déplacement
-                if (estEnEchec == tour) {
-                    echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement
-                    echiquier[ligne1][colonne1] = pieceADeplacer;
-                    return false;
-                }
-            } else {
-                // Déplacement simple
-                echiquier[ligne2][colonne2] = pieceADeplacer;
-                echiquier[ligne1][colonne1] = null;
-
-                char estEnEchec = estEnEchec();
-                // Vérifier si la piece est en échec après le déplacement
-                if (estEnEchec == tour) {
-                    echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement
-                    echiquier[ligne1][colonne1] = pieceADeplacer;
-                    return false;
-                }
+            char estEnEchec = estEnEchec();
+            // Vérifier si le roi est en échec après le déplacement
+            if (estEnEchec == tour) {
+                echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement
+                echiquier[ligne1][colonne1] = pieceADeplacer;
+                return false;
             }
 
             // Vérifier la promotion automatique en dame
             if (pieceADeplacer instanceof Pion) {
                 if ((pieceADeplacer.getCouleur() == 'b' && ligne2 == 0) || (pieceADeplacer.getCouleur() == 'n' && ligne2 == 7)) {
-                    echiquier[ligne2][colonne2] = new Dame(tour); // Remplacez par votre classe Dame
+                    echiquier[ligne2][colonne2] = new Dame(tour); // Remplacez par la classe Dame
                 }
             }
 
@@ -371,99 +354,100 @@ public class PartieEchecs {
         for (byte i = 0; i < 8; i++) {
             for (byte j = 0; j < 8; j++) {
                 if (echiquier[i][j] != null && echiquier[i][j].getCouleur() == couleur) {
-                    // Essayer tous les mouvements possibles pour cette pièce
-                    for (byte x = 0; x < 8; x++) {
-                        for (byte y = 0; y < 8; y++) {
-                            Position initiale = EchecsUtil.getPosition(i, j);
-                            Position finale = EchecsUtil.getPosition(x, y);
-
-                            byte ligne1 = EchecsUtil.indiceLigne(initiale);
-                            byte ligne2 = EchecsUtil.indiceLigne(finale);
-                            byte colonne1 = EchecsUtil.indiceColonne(initiale);
-                            byte colonne2 = EchecsUtil.indiceColonne(finale);
-
-                            Piece pieceADeplacer = echiquier[ligne1][colonne1];
-                            Piece pieceFinale = echiquier[ligne2][colonne2];
-
-                            // Vérifier si le mouvement est possible et le tester
-                            if (deplace(initiale, finale)) {
-                                changerTour();
-                                // Si le joueur n'est plus en échec, le mouvement est possible
-                                if (estEnEchec() != couleur) {
-                                    if (pieceADeplacer instanceof Roi) {
-                                        Roi roi = (Roi) pieceADeplacer;
-
-                                        // Roque du côté roi
-                                        if (colonne2 - colonne1 == 2 && ligne1 == ligne2) {
-
-                                            echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
-                                            echiquier[ligne1][colonne1] = roi;
-                                            roi.setABouge(false);
-
-                                            echiquier[ligne1][7] = echiquier[ligne2][colonne2 - 1]; // Annuler le déplacement de la tour
-                                            echiquier[ligne2][colonne2 - 1] = null;
-                                            ((Tour) echiquier[ligne2][colonne2 - 1]).setABouge(false);
-                                        } else if (colonne2 - colonne1 == -2 && ligne1 == ligne2) { // Roque du coté dame
-                                            echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
-                                            echiquier[ligne1][colonne1] = roi;
-                                            roi.setABouge(false);
-
-                                            echiquier[ligne1][0] = echiquier[ligne2][colonne2 + 1]; // Annuler le déplacement de la tour
-                                            echiquier[ligne2][colonne2 + 1] = null;
-                                            ((Tour) echiquier[ligne2][colonne2 + 1]).setABouge(false);
-                                        } else {
-                                            // Annuler le mouvement pour ne pas modifier l'état du jeu
-                                            echiquier[ligne1][colonne1] = roi;
-                                            roi.setABouge(false);
-                                            echiquier[ligne2][colonne2] = pieceFinale;
-                                        }
-                                    } else {
-                                        // Annuler le mouvement pour ne pas modifier l'état du jeu
-                                        echiquier[ligne1][colonne1] = pieceADeplacer;
-                                        echiquier[ligne2][colonne2] = pieceFinale;
-                                    }
-                                    return false; // Le joueur peut éviter l'échec et mat
-                                }
-                                if (pieceADeplacer instanceof Roi) {
-                                    Roi roi = (Roi) pieceADeplacer;
-
-                                    // Roque du côté roi
-                                    if (colonne2 - colonne1 == 2 && ligne1 == ligne2) {
-
-                                        echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
-                                        echiquier[ligne1][colonne1] = roi;
-                                        roi.setABouge(false);
-
-                                        echiquier[ligne1][7] = echiquier[ligne2][colonne2 - 1]; // Annuler le déplacement de la tour
-                                        echiquier[ligne2][colonne2 - 1] = null;
-                                        ((Tour) echiquier[ligne2][colonne2 - 1]).setABouge(false);
-                                    } else if (colonne2 - colonne1 == -2 && ligne1 == ligne2) { // Roque du coté dame
-                                        echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
-                                        echiquier[ligne1][colonne1] = roi;
-                                        roi.setABouge(false);
-
-                                        echiquier[ligne1][0] = echiquier[ligne2][colonne2 + 1]; // Annuler le déplacement de la tour
-                                        echiquier[ligne2][colonne2 + 1] = null;
-                                        ((Tour) echiquier[ligne2][colonne2 + 1]).setABouge(false);
-                                    } else {
-                                        // Annuler le mouvement pour ne pas modifier l'état du jeu
-                                        echiquier[ligne1][colonne1] = roi;
-                                        roi.setABouge(false);
-                                        echiquier[ligne2][colonne2] = pieceFinale;
-                                    }
-                                } else {
-                                    // Annuler le mouvement pour ne pas modifier l'état du jeu
-                                    echiquier[ligne1][colonne1] = pieceADeplacer;
-                                    echiquier[ligne2][colonne2] = pieceFinale;
-                                }
-                            }
-                        }
+                    if (peutEviterEchec(i, j, couleur)) {
+                        return false; // Le joueur peut éviter l'échec et mat
                     }
                 }
             }
         }
 
         return true; // Aucun mouvement possible pour éviter l'échec et mat.
+    }
+
+    /**
+     * Vérifie si une pièce peut éviter l'échec et mat en effectuant un mouvement.
+     *
+     * @param ligne    L'indice de ligne de la pièce.
+     * @param colonne  L'indice de colonne de la pièce.
+     * @param couleur  La couleur du joueur à vérifier ('n' pour noir, 'b' pour blanc).
+     * @return true si un mouvement peut éviter l'échec et mat, false sinon.
+     */
+    private boolean peutEviterEchec(byte ligne, byte colonne, char couleur) {
+        // Essayer tous les mouvements possibles pour cette pièce
+        for (byte x = 0; x < 8; x++) {
+            for (byte y = 0; y < 8; y++) {
+                Position initiale = EchecsUtil.getPosition(ligne, colonne);
+                Position finale = EchecsUtil.getPosition(x, y);
+
+                byte ligne1 = EchecsUtil.indiceLigne(initiale);
+                byte ligne2 = EchecsUtil.indiceLigne(finale);
+                byte colonne1 = EchecsUtil.indiceColonne(initiale);
+                byte colonne2 = EchecsUtil.indiceColonne(finale);
+
+                Piece pieceADeplacer = echiquier[ligne1][colonne1];
+                Piece pieceFinale = echiquier[ligne2][colonne2];
+
+                // Vérifier si le mouvement est possible et le tester
+                if (deplace(initiale, finale)) {
+                    changerTour();
+                    // Si le joueur n'est plus en échec, le mouvement est possible
+                    if (estEnEchec() != couleur) {
+                        annulerMouvement(initiale, finale, pieceADeplacer, pieceFinale);
+                        return true; // Le joueur peut éviter l'échec et mat
+                    }
+                    annulerMouvement(initiale, finale, pieceADeplacer, pieceFinale);
+                }
+            }
+        }
+
+        return false; // Aucun mouvement possible pour éviter l'échec et mat.
+    }
+
+    /**
+     * Annule un mouvement en restaurant l'état précédent de l'échiquier.
+     *
+     * @param initiale      La position initiale de la pièce.
+     * @param finale        La position finale de la pièce.
+     * @param pieceADeplacer La pièce à déplacer.
+     * @param pieceFinale    La pièce finale.
+     */
+    private void annulerMouvement(Position initiale, Position finale, Piece pieceADeplacer, Piece pieceFinale) {
+        byte ligne1 = EchecsUtil.indiceLigne(initiale);
+        byte ligne2 = EchecsUtil.indiceLigne(finale);
+        byte colonne1 = EchecsUtil.indiceColonne(initiale);
+        byte colonne2 = EchecsUtil.indiceColonne(finale);
+
+        if (pieceADeplacer instanceof Roi) {
+            Roi roi = (Roi) pieceADeplacer;
+
+            // Roque du côté roi
+            if (colonne2 - colonne1 == 2 && ligne1 == ligne2) {
+                echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
+                echiquier[ligne1][colonne1] = roi;
+                roi.setABouge(false);
+
+                echiquier[ligne1][7] = echiquier[ligne2][colonne2 - 1]; // Annuler le déplacement de la tour
+                echiquier[ligne2][colonne2 - 1] = null;
+                ((Tour) echiquier[ligne2][colonne2 - 1]).setABouge(false);
+            } else if (colonne2 - colonne1 == -2 && ligne1 == ligne2) { // Roque du coté dame
+                echiquier[ligne2][colonne2] = pieceFinale; // Annuler le déplacement du roi
+                echiquier[ligne1][colonne1] = roi;
+                roi.setABouge(false);
+
+                echiquier[ligne1][0] = echiquier[ligne2][colonne2 + 1]; // Annuler le déplacement de la tour
+                echiquier[ligne2][colonne2 + 1] = null;
+                ((Tour) echiquier[ligne2][colonne2 + 1]).setABouge(false);
+            } else {
+                // Annuler le mouvement pour ne pas modifier l'état du jeu
+                echiquier[ligne1][colonne1] = roi;
+                roi.setABouge(false);
+                echiquier[ligne2][colonne2] = pieceFinale;
+            }
+        } else {
+            // Annuler le mouvement pour ne pas modifier l'état du jeu
+            echiquier[ligne1][colonne1] = pieceADeplacer;
+            echiquier[ligne2][colonne2] = pieceFinale;
+        }
     }
 
     /**

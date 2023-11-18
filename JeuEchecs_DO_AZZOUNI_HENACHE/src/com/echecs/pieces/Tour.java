@@ -3,7 +3,7 @@ package com.echecs.pieces;
 import com.echecs.Position;
 import com.echecs.util.EchecsUtil;
 
-public class Tour extends Piece {
+public class Tour extends com.echecs.pieces.Piece {
     private boolean aBouge;
     public Tour(char couleur, boolean aBouge) {
         super(couleur);
@@ -19,7 +19,7 @@ public class Tour extends Piece {
     }
 
     @Override
-    public boolean peutSeDeplacer(Position pos1, Position pos2, Piece[][] echiquier) {
+    public boolean peutSeDeplacer(Position pos1, Position pos2, com.echecs.pieces.Piece[][] echiquier) {
         byte ligne1 = EchecsUtil.indiceLigne(pos1);
         byte ligne2 = EchecsUtil.indiceLigne(pos2);
         byte colonne1 = EchecsUtil.indiceColonne(pos1);
@@ -40,7 +40,7 @@ public class Tour extends Piece {
         return false;
     }
 
-    private boolean peutSeDeplacerVerticalement(byte ligne1, byte ligne2, byte colonne2, Piece[][] echiquier) {
+    private boolean peutSeDeplacerVerticalement(byte ligne1, byte ligne2, byte colonne2, com.echecs.pieces.Piece[][] echiquier) {
         byte start = (byte) (Math.min(ligne1, ligne2) + 1);
         byte end = (byte) Math.max(ligne1, ligne2);
 

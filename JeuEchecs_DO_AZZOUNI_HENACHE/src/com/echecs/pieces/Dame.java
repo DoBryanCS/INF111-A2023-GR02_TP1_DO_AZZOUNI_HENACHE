@@ -3,12 +3,12 @@ package com.echecs.pieces;
 import com.echecs.Position;
 import com.echecs.util.EchecsUtil;
 
-public class Dame extends Piece {
+public class Dame extends com.echecs.pieces.Piece {
     public Dame(char couleur) {
         super(couleur);
     }
     @Override
-    public boolean peutSeDeplacer(Position pos1, Position pos2, Piece[][] echiquier) {
+    public boolean peutSeDeplacer(Position pos1, Position pos2, com.echecs.pieces.Piece[][] echiquier) {
         byte ligne1 = EchecsUtil.indiceLigne(pos1);
         byte ligne2 = EchecsUtil.indiceLigne(pos2);
         byte colonne1 = EchecsUtil.indiceColonne(pos1);
@@ -28,7 +28,7 @@ public class Dame extends Piece {
         return pos1.estSurLaMemeDiagonaleQue(pos2) && peutSeDeplacerEnDiagonale(ligne1, colonne1, ligne2, colonne2, echiquier);
     }
 
-    private boolean peutSeDeplacerVerticalement(byte ligne1, byte ligne2, byte colonne2, Piece[][] echiquier) {
+    private boolean peutSeDeplacerVerticalement(byte ligne1, byte ligne2, byte colonne2, com.echecs.pieces.Piece[][] echiquier) {
         byte start = (byte) (Math.min(ligne1, ligne2) + 1);
         byte end = (byte) Math.max(ligne1, ligne2);
 
@@ -41,7 +41,7 @@ public class Dame extends Piece {
         return true;
     }
 
-    private boolean peutSeDeplacerHorizontalement(byte colonne1, byte colonne2, byte ligne2, Piece[][] echiquier) {
+    private boolean peutSeDeplacerHorizontalement(byte colonne1, byte colonne2, byte ligne2, com.echecs.pieces.Piece[][] echiquier) {
         byte start = (byte) (Math.min(colonne1, colonne2) + 1);
         byte end = (byte) Math.max(colonne1, colonne2);
 
